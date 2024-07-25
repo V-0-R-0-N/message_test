@@ -10,5 +10,8 @@ run:
 	@echo "Run server"
 	@./bin/server
 
+clean:
+	@rm -rf ./bin/server
+	@echo "Clean"
 
-.PHONY: all run
+.PHONY: all build run clean
