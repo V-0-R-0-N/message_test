@@ -1,0 +1,9 @@
+name: message
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: server
+    ports:
+      - 8080:8080
