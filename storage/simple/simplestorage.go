@@ -36,7 +36,7 @@ func (s *Simple) GetStats() *models.Stats {
 	}
 }
 
-func NewSimpleStorage() *Simple {
+func NewSimple() *Simple {
 	return &Simple{}
 }
 func (s *Simple) String() string {
