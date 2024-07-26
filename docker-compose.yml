@@ -6,4 +6,20 @@ services:
       dockerfile: Dockerfile
     container_name: server
     ports:
-      - 8080:8080
+      - ${SERVER_PORT}:8080
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15.7-alpine3.20
+    env_file:
+      - .env
+    container_name: postgres
+    ports:
+      - ${PG_PORT}:5432
+    volumes:
+      - ./internal/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./internal/postgres/db:/var/lib/postgresql/data:rw
+    # TODO удалить положив на сервер
+    user:
+      ${USER_GROUP}
