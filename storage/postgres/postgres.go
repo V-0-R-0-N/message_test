@@ -38,8 +38,21 @@ func NewDB() *DB {
 	}
 }
 
-func (db *DB) Save(_ *models.Message) error {
+func (db *DB) Save(req *models.Message) error {
 
+	req.Created = time.Now()
+
+	query := `
+		INSERT INTO messaggio.public.messages (author, text, created, sent)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id
+	`
+	ctx := context.Background()
+	err := db.Pool.QueryRow(ctx, query, req.Author, req.Text, req.Created, req.Sent).Scan(&req.ID)
+	if err != nil {
+		log.Fatal("Unable to fetch message count")
+		return err
+	}
 	return nil
 }
 
@@ -47,14 +60,14 @@ func (db *DB) GetStats() *models.Stats {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	result_send := 0
-	err := db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM messaggio.public.messages WHERE sent=false").Scan(&result_send)
+	resultSend := 0
+	err := db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM messaggio.public.messages WHERE sent=false").Scan(&resultSend)
 	if err != nil {
 		log.Printf("QueryRow failed: %v\n", err)
 		return nil
 	}
 
 	return &models.Stats{
-		Counter: result_send,
+		Counter: resultSend,
 	}
 }
