@@ -9,11 +9,11 @@ services:
       - ${SERVER_PORT}:8080
     depends_on:
       - postgres
+      - kafka
 
   postgres:
     image: postgres:15.7-alpine3.20
-    env_file:
-      - .env
+    env_file: .env
     container_name: postgres
     ports:
       - ${PG_PORT}:5432
@@ -23,3 +23,12 @@ services:
     # TODO удалить положив на сервер
     user:
       ${USER_GROUP}
+
+  kafka:
+    image: confluentinc/cp-kafka:7.7.0
+    env_file: .env
+    container_name: kafka
+    ports:
+        - ${K_PORT}:9092
+    volumes:
+        - ./data/kafka:/var/lib/kafka/data
