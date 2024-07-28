@@ -16,8 +16,7 @@ services:
     image: postgres:15.7-alpine3.20
     env_file: .env
     container_name: postgres
-    ports:
-      - ${PG_PORT}:5432
+
     volumes:
       - ./internal/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./internal/postgres/db:/var/lib/postgresql/data:rw
@@ -30,8 +29,7 @@ services:
     image: confluentinc/cp-kafka:7.7.0
     env_file: .env
     container_name: kafka
-    ports:
-        - ${K_PORT}:9092
+
     volumes:
         - ./data/kafka:/var/lib/kafka/data
     user:
