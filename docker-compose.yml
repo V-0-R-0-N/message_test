@@ -34,3 +34,5 @@ services:
         - ${K_PORT}:9092
     volumes:
         - ./data/kafka:/var/lib/kafka/data
+    user:
+      0:0
