@@ -8,12 +8,16 @@ import (
 	"time"
 )
 
+const TIMEOUT = 10 // seconds
+
+// DB структура для работы с базой данных
 type DB struct {
 	Pool *pgxpool.Pool
 }
 
+// NewDB создает новый экземпляр DB
 func NewDB() *DB {
-	// "postgres://username:password@localhost:5432/dbname"
+	//TODO: вынести в конфиг
 	connString := "postgres://us:pass@postgres:5432/messaggio"
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
@@ -27,7 +31,8 @@ func NewDB() *DB {
 	if err != nil {
 		log.Fatalf("Unable to create connection pool: %v\n", err)
 	}
-
+	// Проверка соединения
+	time.Sleep(TIMEOUT * time.Second)
 	err = pool.Ping(context.Background())
 	if err != nil {
 		log.Fatal("Ping error")
@@ -36,6 +41,7 @@ func NewDB() *DB {
 	return &DB{
 		Pool: pool,
 	}
+	// TODO defer после вызова функции
 }
 
 func (db *DB) Save(req *models.Message) error {
@@ -56,18 +62,60 @@ func (db *DB) Save(req *models.Message) error {
 	return nil
 }
 
+// GetStats возвращает статистику по принятым и отправленным сообщениям
 func (db *DB) GetStats() *models.Stats {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	totalSent := 0
 	resultSend := 0
-	err := db.Pool.QueryRow(ctx, "SELECT COUNT(*) FROM messaggio.public.messages WHERE sent=false").Scan(&resultSend)
+	err := db.Pool.QueryRow(ctx, "SELECT COUNT(id) FROM messaggio.public.messages").Scan(&totalSent)
 	if err != nil {
-		log.Printf("QueryRow failed: %v\n", err)
+		log.Printf("QueryRow total failed: %v\n", err)
+		return nil
+	}
+	err = db.Pool.QueryRow(ctx, "SELECT COUNT(id) FROM messaggio.public.messages WHERE sent=true").Scan(&resultSend)
+	if err != nil {
+		log.Printf("QueryRow sent failed: %v\n", err)
 		return nil
 	}
 
 	return &models.Stats{
-		Counter: resultSend,
+		Total: totalSent,
+		Sent:  resultSend,
 	}
+}
+
+// NeedSent возвращает сообщения, которые необходимо отправить
+func (db *DB) NeedSent() []*models.Message {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	rows, err := db.Pool.Query(ctx, "SELECT id, author, text, created FROM messaggio.public.messages WHERE sent=false")
+	if err != nil {
+		log.Printf("Query failed: %v\n", err)
+		return nil
+	}
+	defer rows.Close()
+
+	var result []*models.Message
+	for rows.Next() {
+		var message models.Message
+		err = rows.Scan(&message.ID, &message.Author, &message.Text, &message.Created)
+		if err != nil {
+			log.Printf("Scan failed: %v\n", err)
+			return nil
+		}
+		result = append(result, &message)
+	}
+	return result
+}
+
+func (db *DB) ChangeStatusSent(ctx context.Context, id int) error {
+	_, err := db.Pool.Exec(ctx, "UPDATE messaggio.public.messages SET sent=true WHERE id=$1", id)
+	if err != nil {
+		log.Printf("Exec failed: %v\n", err)
+		return err
+	}
+	return nil
 }
