@@ -26,7 +26,7 @@ services:
     container_name: postgres
     env_file: ./config/postgres.env
     environment:
-      - POSTGRES_DB=${POSTGRES_DB:-messagio}
+      - POSTGRES_DB=${POSTGRES_DB:-messaggio}
       - POSTGRES_USER=${POSTGRES_USER:-us}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pass}
     volumes:
