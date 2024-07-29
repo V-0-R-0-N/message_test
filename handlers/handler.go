@@ -32,7 +32,8 @@ func (h *Handler) Save(w http.ResponseWriter, r *http.Request) {
 	mes, err := models.MessageFromJSON(body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal server error"))
+		w.Write([]byte("Internal server error or invalid request\n"))
+		return
 	}
 	err = models.ValidateMessage(mes)
 	if err != nil {

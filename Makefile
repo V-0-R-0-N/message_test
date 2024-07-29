@@ -5,7 +5,7 @@ all: install-deps build
 # Проверка наличия docker и установка, если не установлен
 install-docker:
 	@if ! [ -x "$$(command -v docker)" ]; then \
-		echo "Docker is not installed. Installing Docker..."; \
+		echo "\nDocker is not installed. Installing Docker...\n"; \
 		curl -fsSL https://get.docker.com -o get-docker.sh; \
 		sh get-docker.sh; \
 		rm get-docker.sh; \
@@ -16,7 +16,7 @@ install-docker:
 # Проверка наличия docker-compose и установка, если не установлен
 install-docker-compose:
 	@if ! [ -x "$$(command -v docker-compose)" ]; then \
-		echo "Docker Compose is not installed. Installing Docker Compose..."; \
+		echo "\nDocker Compose is not installed. Installing Docker Compose...\n"; \
 		curl -L "https://github.com/docker/compose/releases/download/2.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose; \
 		chmod +x /usr/local/bin/docker-compose; \
 		ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose; \
