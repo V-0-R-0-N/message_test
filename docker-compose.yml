@@ -25,16 +25,32 @@ services:
     image: postgres:15.7-alpine3.20
     container_name: postgres
     env_file: ./config/postgres.env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-messagio}
+      - POSTGRES_USER=${POSTGRES_USER:-us}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-pass}
     volumes:
       - ./internal/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./data/postgres:/var/lib/postgresql/data:rw
-
 
 
   kafka:
     image: confluentinc/cp-kafka:7.7.0
     container_name: kafka
     env_file: ./config/kafka.env
+    environment:
+      - CLUSTER_ID=${CLUSTER_ID:-1}
+      - KAFKA_MODE=${KAFKA_MODE:-kraft}
+      - KAFKA_LISTENERS=${KAFKA_LISTENERS:-PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093}
+      - KAFKA_ADVERTISED_LISTENERS=${KAFKA_ADVERTISED_LISTENERS:-PLAINTEXT://kafka:9092}
+      - KAFKA_LOG_DIRS=${KAFKA_LOG_DIRS:-/var/lib/kafka/data}
+      - KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE=${KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE:-false}
+      - KAFKA_PROCESS_ROLES=${KAFKA_PROCESS_ROLES:-broker,controller}
+      - KAFKA_CONTROLLER_LISTENER_NAMES=${KAFKA_CONTROLLER_LISTENER_NAMES:-CONTROLLER}
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP:-PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT}
+      - KAFKA_NODE_ID=${KAFKA_NODE_ID:-1}
+      - KAFKA_CONTROLLER_QUORUM_VOTES=${KAFKA_CONTROLLER_QUORUM_VOTES:-1@kafka9093}
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:-1}
     volumes:
         - ./data/kafka:/var/lib/kafka/data
     user: 0:0
