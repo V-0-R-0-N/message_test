@@ -7,6 +7,7 @@ import (
 	"message/storage"
 )
 
+// InitNew инициализирует новый роутер
 func InitNew(st storage.Storage) chi.Router {
 	r := chi.NewRouter()
 

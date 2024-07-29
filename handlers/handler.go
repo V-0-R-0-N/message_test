@@ -32,7 +32,8 @@ func (h *Handler) Save(w http.ResponseWriter, r *http.Request) {
 	mes, err := models.MessageFromJSON(body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal server error"))
+		w.Write([]byte("Internal server error or invalid request\n"))
+		return
 	}
 	err = models.ValidateMessage(mes)
 	if err != nil {
@@ -47,12 +48,13 @@ func (h *Handler) Save(w http.ResponseWriter, r *http.Request) {
 	log.Println("Message saved", mes)
 }
 
+// Get возвращает статистику
 func (h *Handler) Get(w http.ResponseWriter, _ *http.Request) {
 	stats := storage.GetStats(h.st)
 	body, err := models.StatsToJSON(stats)
 	if err != nil {
-		log.Fatal("Internal server error")
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Internal server error"))
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

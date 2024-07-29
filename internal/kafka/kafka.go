@@ -4,15 +4,15 @@ import (
 	"github.com/IBM/sarama"
 	"message/models"
 	"net"
+	"os"
+	"strconv"
 	"time"
 
 	"log"
 )
 
 const (
-	KAFKAHOST = "kafka"
-	KAFKAPORT = "9092"
-	TIMEOUT   = 10 // seconds
+	TIMEOUT = 10 // seconds
 )
 
 // InitProducer инициализирует продюсера Kafka
@@ -20,9 +20,16 @@ func InitProducer() *sarama.SyncProducer {
 	// Конфигурация клиента Kafka
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
+	// Получение переменных окружения
+	kafkaHost := os.Getenv("SERVER_KAFKA_HOST")
+	kafkaPort := os.Getenv("SERVER_KAFKA_PORT")
+	timeout, err := strconv.Atoi(os.Getenv("SERVER_KAFKA_TIMEOUT"))
+	if err != nil {
+		log.Fatalf("Failed to convert WORKER_TIMEOUT to int: %v", err)
+	}
 	// Создание хоста
-	hostPort := net.JoinHostPort(KAFKAHOST, KAFKAPORT)
-	time.Sleep(TIMEOUT * time.Second)
+	hostPort := net.JoinHostPort(kafkaHost, kafkaPort)
+	time.Sleep(time.Duration(timeout) * time.Second)
 	// Создание синхронного продюсера
 	producer, err := sarama.NewSyncProducer([]string{hostPort}, config)
 	if err != nil {

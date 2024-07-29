@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 )
 
@@ -76,8 +77,12 @@ func MessageToJSONForKafka(mes *Message) ([]byte, error) {
 
 // ValidateMessage проверяет сообщение на валидность
 func ValidateMessage(mes *Message) error {
-	if mes.Author == "" || mes.Text == "" {
+	if mes == nil || mes.Author == "" || mes.Text == "" {
 		return fmt.Errorf("author or text is empty")
+	}
+	re := regexp.MustCompile(`^[\p{L}\p{N}\p{P}]+$`)
+	if !re.MatchString(mes.Author) || !re.MatchString(mes.Text) {
+		return fmt.Errorf("author or text is invalid")
 	}
 	return nil
 }
