@@ -28,9 +28,7 @@ services:
     volumes:
       - ./internal/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./data/postgres:/var/lib/postgresql/data:rw
-    # TODO удалить положив на сервер
-    user:
-      ${POSTGRES_USER_GROUP:-1000:1000}
+
 
 
   kafka:
@@ -39,3 +37,4 @@ services:
     env_file: ./config/kafka.env
     volumes:
         - ./data/kafka:/var/lib/kafka/data
+    user: 0:0

@@ -10,7 +10,7 @@ install-docker:
 		sh get-docker.sh; \
 		rm get-docker.sh; \
 	else \
-		echo -e "\nDocker is already installed.\n"; \
+		echo "\nDocker is already installed.\n"; \
 	fi
 
 # Проверка наличия docker-compose и установка, если не установлен
@@ -21,12 +21,12 @@ install-docker-compose:
 		chmod +x /usr/local/bin/docker-compose; \
 		ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose; \
 	else \
-		echo -e "\nDocker Compose is already installed.\n"; \
+		echo "\nDocker Compose is already installed.\n"; \
 	fi
 
 # Сборка контейнеров и их поднятие
 build:
-	@echo -e "\nDocker containers build and up.\n"
+	@echo "\nDocker containers build and up.\n"
 	@docker compose up --build -d
 
 # Установка зависимостей
@@ -34,28 +34,28 @@ install-deps: install-docker install-docker-compose
 
 # Запуск контейнеров
 up:
-	@echo -e "\nDocker containers up.\n"
+	@echo "\nDocker containers up.\n"
 	@docker compose up -d
 
 # Просмотр логов контейнеров
 logs:
-	@echo -e "\nDocker containers logs.\n"
+	@echo "\nDocker containers logs.\n"
 	@docker compose logs -f --tail=100
 
 # Остановка контейнеров
 down:
-	@echo -e "\nDocker containers down.\n"
+	@echo "\nDocker containers down.\n"
 	@docker compose down
 
 # Чтение лона сообщений из Kafka
 # если изменили TOPIC (worker.go), то нужно изменить и в Makefile --topic
 kafka_message:
-	@echo -e "\nLooking messages from Kafka\n"
+	@echo "\nLooking messages from Kafka\n"
 	@docker compose exec kafka kafka-console-consumer --bootstrap-server kafka:9092 --topic message --from-beginning
 
 # Очистка данных PostgreSQL и Kafka
 clean_data:
-	@echo -e "\nData is clean\n"
+	@echo "\nData is clean\n"
 	@rm -rf ./data/postgres/* ./data/kafka/*
 
 
