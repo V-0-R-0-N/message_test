@@ -2,13 +2,14 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
 	"message/models"
+	"os"
+	"strconv"
 	"time"
 )
-
-const TIMEOUT = 10 // seconds
 
 // DB структура для работы с базой данных
 type DB struct {
@@ -17,8 +18,16 @@ type DB struct {
 
 // NewDB создает новый экземпляр DB
 func NewDB() *DB {
-	//TODO: вынести в конфиг
-	connString := "postgres://us:pass@postgres:5432/messaggio"
+	// Получение переменных окружения
+	dbName := os.Getenv("SERVER_POSTGRES_DB")
+	postgresUser := os.Getenv("SERVER_POSTGRES_USER")
+	postgresPassword := os.Getenv("SERVER_POSTGRES_PASSWORD")
+	timeout, err := strconv.Atoi(os.Getenv("SERVER_POSTGRES_TIMEOUT"))
+	if err != nil {
+		log.Fatalf("Failed to convert WORKER_TIMEOUT to int: %v", err)
+	}
+	connString := fmt.Sprintf("postgres://%s:%s@postgres:5432/%s", postgresUser, postgresPassword, dbName)
+
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
 		log.Fatalf("Unable to parse connection string: %v\n", err)
@@ -32,7 +41,7 @@ func NewDB() *DB {
 		log.Fatalf("Unable to create connection pool: %v\n", err)
 	}
 	// Проверка соединения
-	time.Sleep(TIMEOUT * time.Second)
+	time.Sleep(time.Duration(timeout) * time.Second)
 	err = pool.Ping(context.Background())
 	if err != nil {
 		log.Fatal("Ping error")
@@ -111,6 +120,7 @@ func (db *DB) NeedSent() []*models.Message {
 	return result
 }
 
+// ChangeStatusSent изменяет статус сообщения на отправленное
 func (db *DB) ChangeStatusSent(ctx context.Context, id int) error {
 	_, err := db.Pool.Exec(ctx, "UPDATE messaggio.public.messages SET sent=true WHERE id=$1", id)
 	if err != nil {
