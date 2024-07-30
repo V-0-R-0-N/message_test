@@ -42,7 +42,13 @@ func (h *Handler) Save(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	storage.Save(h.st, mes)
+	err = storage.Save(h.st, mes)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Sorry! We failed to save the message\n"))
+		log.Println(err)
+		return
+	}
 	w.WriteHeader(http.StatusCreated)
 
 	log.Println("Message saved", mes)

@@ -65,7 +65,7 @@ func (db *DB) Save(req *models.Message) error {
 	ctx := context.Background()
 	err := db.Pool.QueryRow(ctx, query, req.Author, req.Text, req.Created, req.Sent).Scan(&req.ID)
 	if err != nil {
-		log.Fatal("Unable to fetch message count")
+		log.Printf("Unable to save message")
 		return err
 	}
 	return nil
