@@ -28,7 +28,7 @@ func New(ctx context.Context, st storage.Storage, producer *sarama.SyncProducer)
 			log.Println("Worker is waiting")
 			time.Sleep(time.Duration(timeout) * time.Second)
 			log.Println("Worker started")
-			messages := storage.NeedSent(st)
+			messages := st.NeedSent()
 			for _, message := range messages {
 				select {
 				case <-ctx.Done():
@@ -41,7 +41,7 @@ func New(ctx context.Context, st storage.Storage, producer *sarama.SyncProducer)
 						continue
 					}
 					log.Println("Message sent to Kafka")
-					err = storage.ChangeStatusSent(ctx, st, message.ID)
+					err = st.ChangeStatusSent(ctx, message.ID)
 					if err != nil {
 						log.Printf("Failed to change sent status: %v", err)
 						continue

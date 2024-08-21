@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"regexp"
+	"strings"
 	"time"
 )
 
@@ -35,24 +35,9 @@ func MessageFromJSON(body []byte) (*Message, error) {
 	return &mes, nil
 }
 
-// StatsToJSON парсит структуру Stats в JSON
-func StatsToJSON(stats *Stats) ([]byte, error) {
-	body, err := json.Marshal(stats)
-	if err != nil {
-		log.Fatal("Marshalling body error:", err)
-		return nil, err
-	}
-	return body, nil
-}
-
-// MessageToJSON парсит структуру Message в JSON
-func MessageToJSON(mes *Message) ([]byte, error) {
-	body, err := json.Marshal(mes)
-	if err != nil {
-		log.Fatal("Marshalling body error:", err)
-		return nil, err
-	}
-	return body, nil
+// ToJSON парсит в JSON
+func ToJSON(v any) ([]byte, error) {
+	return json.Marshal(v)
 }
 
 // MessageToJSONForKafka парсит структуру Message в JSON для Kafka
@@ -75,14 +60,17 @@ func MessageToJSONForKafka(mes *Message) ([]byte, error) {
 	return body, nil
 }
 
-// ValidateMessage проверяет сообщение на валидность
+// ValidateMessage проверяет структуру на валидность
+// и убирает символы пробелов и табуляции в начале и конце
+// в полях Author и Text
 func ValidateMessage(mes *Message) error {
-	if mes == nil || mes.Author == "" || mes.Text == "" {
+	if mes == nil {
 		return fmt.Errorf("author or text is empty")
 	}
-	re := regexp.MustCompile(`^[\p{L}\p{N}\p{P}]+$`)
-	if !re.MatchString(mes.Author) || !re.MatchString(mes.Text) {
-		return fmt.Errorf("author or text is invalid")
+	mes.Author = strings.Trim(mes.Author, " \t\r")
+	mes.Text = strings.Trim(mes.Text, " \t\r")
+	if mes.Author == "" || mes.Text == "" {
+		return fmt.Errorf("author or text is empty/invalid")
 	}
 	return nil
 }
