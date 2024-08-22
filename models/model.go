@@ -29,7 +29,7 @@ func MessageFromJSON(body []byte) (*Message, error) {
 
 	err := json.Unmarshal(body, &mes)
 	if err != nil {
-		fmt.Println("Error unmarshalling body:", err)
+		log.Println("Error unmarshalling body:", err)
 		return nil, err
 	}
 	return &mes, nil
@@ -37,7 +37,12 @@ func MessageFromJSON(body []byte) (*Message, error) {
 
 // ToJSON парсит в JSON
 func ToJSON(v any) ([]byte, error) {
-	return json.Marshal(v)
+	body, err := json.Marshal(v)
+	if err != nil {
+		log.Println("ToJSON error:", err)
+		return nil, err
+	}
+	return body, nil
 }
 
 // MessageToJSONForKafka парсит структуру Message в JSON для Kafka
@@ -54,7 +59,7 @@ func MessageToJSONForKafka(mes *Message) ([]byte, error) {
 		Created: mes.Created,
 	})
 	if err != nil {
-		log.Fatal("Marshalling body error:", err)
+		log.Println("Marshalling body error:", err)
 		return nil, err
 	}
 	return body, nil
@@ -65,11 +70,13 @@ func MessageToJSONForKafka(mes *Message) ([]byte, error) {
 // в полях Author и Text
 func ValidateMessage(mes *Message) error {
 	if mes == nil {
+		log.Println("Message is nil")
 		return fmt.Errorf("author or text is empty")
 	}
 	mes.Author = strings.Trim(mes.Author, " \t\r")
 	mes.Text = strings.Trim(mes.Text, " \t\r")
 	if mes.Author == "" || mes.Text == "" {
+		log.Println("Author or text is empty/invalid")
 		return fmt.Errorf("author or text is empty/invalid")
 	}
 	return nil

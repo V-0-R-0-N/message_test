@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"message/models"
@@ -22,31 +23,27 @@ func NewHandler(st storage.Storage) *Handler {
 
 // Save сохраняет сообщение
 func (h *Handler) Save(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid request"))
+		http.Error(w, "Failed to read request body", http.StatusBadRequest)
 		return
 	}
 	mes, err := models.MessageFromJSON(body)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid request"))
+		http.Error(w, fmt.Sprintf("Error unmarshalling request body: %v", err),
+			http.StatusBadRequest)
 		return
 	}
 	err = models.ValidateMessage(mes)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid request"))
-		log.Println(err)
+		http.Error(w, fmt.Sprintf("Invalid message: %v", err), http.StatusBadRequest)
 		return
 	}
 	err = h.st.Save(mes)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Sorry! We failed to save the message\n"))
-		log.Println(err)
+		http.Error(w, fmt.Sprintf("Sorry! We failed to save the message: %v", err),
+			http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
@@ -59,8 +56,8 @@ func (h *Handler) Get(w http.ResponseWriter, _ *http.Request) {
 	stats := h.st.GetStats()
 	body, err := models.ToJSON(stats)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal server error"))
+		http.Error(w, fmt.Sprintf("Failed to marshal stats: %v", err),
+			http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
